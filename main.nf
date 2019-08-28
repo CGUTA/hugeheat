@@ -48,7 +48,7 @@ process box_sampling_into_long {
 process normalization_colorization {
 	conda "r-base r-magrittr r-data.table"
 
-	//publishDir "$params.outdir/", mode: 'copy', saveAs: { filename -> "${datasetID}_$filename" }
+	publishDir "$params.outdir/", mode: 'copy', saveAs: { filename -> "${datasetID}_$filename" }
 
     label 'rscript'
     
@@ -60,7 +60,7 @@ process normalization_colorization {
 
     output:
     set datasetID, file("data_output.csv") into to_heat
-
+    file "data_output_full.csv"
 
     """
     #!/usr/bin/env Rscript
@@ -112,7 +112,7 @@ process normalization_colorization {
 	    into_rgb 
 	}
 
-	choose_color <- function(x, output) {
+	choose_color <- function(x, output, target_color) {
 	 color <- x[1]
 	 color_negative <- x[2]
 	 proportion <- x[3]
@@ -166,21 +166,27 @@ process normalization_colorization {
     	col2rgb(hex)[,1]
 	}
 
-	#background_color <- hex_to_rgb("#e5e5e5")
-	background_color <- hex_to_rgb("#000000")
-	#background_color <- hex_to_rgb("#ffffff")
+
+	background_color <- hex_to_rgb("$params.background_color_u8")
+	
+
 	 
 	 if(!is.na(proportion)){
 	   
-	   color <- colormix(fire[[color]], blue[[color_negative]], proportion) %>% rgb_mix(background_color, intensity) %>% into_string
+	   if("$params.bicolor" == "null"){ 
+			color <- colormix(fire[[color]], blue[[color_negative]], proportion) %>% rgb_mix(background_color, intensity) %>% into_string
+	   } 
+	   else {
+	   	    target_color <- hex_to_rgb("$params.bicolor")
+	   		color <- rgb_mix(target_color, background_color, intensity) %>% into_string
+	   }
 	   
 	 } else {
 	   
 	   color <- background_color %>% into_string
 	 }
-	 
-	}
 
+}
 
 	head(melted)
 
@@ -220,6 +226,8 @@ process normalization_colorization {
 	melted[, proprotion_of_positive := round(value/(value + abs(value_negative)), 2)]
 
 	conversion_table <- melted[,.N,by=.(color, color_negative, proprotion_of_positive, intensity)]
+
+
 	hex_colors <- apply(conversion_table, 1, choose_color)
 
 	conversion_table[[5]] <- hex_colors
@@ -246,6 +254,7 @@ process normalization_colorization {
 
 
 	fwrite(exagerated_merged, "data_output.csv", col.names = FALSE)
+	fwrite(merged, "data_output_full.csv", col.names = FALSE)
 	#fwrite(merged[order(-id,-col),.(id, col, hex_color)], "data_output.csv", col.names = FALSE)
     """
 
@@ -289,7 +298,7 @@ with open("$long_file") as f:
         if created:
             render(x,y,color)
         else:
-            data = np.full( (x+1,y+1,3), $params.background_color_u8, dtype=np.uint8)
+            data = np.full( (x+1,y+1,3), 0, dtype=np.uint8)
             render(x,y,color)
             created = True
         
