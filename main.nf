@@ -167,7 +167,7 @@ process normalization_colorization {
 	}
 
 
-	background_color <- hex_to_rgb("$params.background_color_u8")
+	background_color <- hex_to_rgb("$params.background_color")
 	
 
 	 
@@ -177,8 +177,11 @@ process normalization_colorization {
 			color <- colormix(fire[[color]], blue[[color_negative]], proportion) %>% rgb_mix(background_color, intensity) %>% into_string
 	   } 
 	   else {
-	   	    target_color <- hex_to_rgb("$params.bicolor")
-	   		color <- rgb_mix(target_color, background_color, intensity) %>% into_string
+	   		color_pair <- "$params.bicolor" %>% strsplit(",") %>% unlist
+	   		color_positive <- color_pair[1] %>% hex_to_rgb
+	   		color_negative <- ifelse(length(color_pair) == 2, color_pair[2], color_positive) %>% hex_to_rgb
+
+	   		color <- rgb_mix(color_positive, color_negative, proportion) %>% rgb_mix(background_color, intensity) %>% into_string
 	   }
 	   
 	 } else {
