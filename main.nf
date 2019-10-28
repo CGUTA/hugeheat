@@ -200,7 +200,8 @@ process normalization_colorization {
 	max <- quantile(melted[,value], probs = c(threshold))
 
 	min <- quantile(melted[,value_negative], probs = c(1 - threshold))
-	#max <- min * -1
+	max <- 1
+	min <- -1
 
 	melted[value > max, value := max]
 	melted[value_negative < min, value_negative := min]
