@@ -1,8 +1,8 @@
-// Make heatmap for arko
+
 params.outdir="."
 process compile {
-	storeDir "$params.outdir/bin/" 
-
+	//storeDir "$params.outdir/bin/" 
+	//cache false
 	//publishDir "$params.outdir/", mode: 'copy', saveAs: { filename -> "${datasetID}_reduced_$filename" }
     
     input:
@@ -10,13 +10,16 @@ process compile {
 
     output:
     file 'csvmipmap/target/release/csvmipmap' into binary
-
+    //file 'csvmipmap' into binary
 
     """
+    echo hallo
     git clone $repo
     cd csvmipmap/
-    cargo build --release
-    #cp target/release/csvmipmap ../csvmipmap_b
+    /root/.cargo/bin/cargo build --release
+    #cd ..
+    #mv csvmipmap csvmipmap_package
+    #cp csvmipmap_package/target/release/csvmipmap ./csvmipmap
     """
 
 }
@@ -330,8 +333,7 @@ process normalization_colorization {
 }
 
 process compile_display {
-	storeDir "$params.outdir/bin/" 
-
+	//storeDir "$params.outdir/bin/" 
 	//publishDir "$params.outdir/", mode: 'copy', saveAs: { filename -> "${datasetID}_reduced_$filename" }
     
     input:
@@ -341,11 +343,16 @@ process compile_display {
     file 'display_heatmap/target/release/display_heatmap' into binary_display
 
 
-    """
-    git clone $repo
+    shell:
+    '''
+    git clone !{repo}
     cd display_heatmap/
-    cargo build --release
-    """
+    
+    ### bugfix: https://users.rust-lang.org/t/expected-u32-found-usize-in-lexical-core/62820/2
+    sed -i 's/lexical = "4.0.0"/lexical = "5.0.0"/g' Cargo.toml
+    
+    /root/.cargo/bin/cargo build --release
+    '''
 
 }
 
