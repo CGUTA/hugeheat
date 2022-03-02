@@ -13,10 +13,7 @@ RUN conda config --add channels conda-forge
 RUN conda install r-base=3.6.3 
 #RUN conda install r-essentials libiconv mesa-libgl-cos6-x86_64 libxml2 xorg-libxtst
 
-#RUN conda install -c anaconda git
-
 RUN apt install -y git-all
-
 
 RUN R -e 'install.packages("pacman",repos = "http://cran.us.r-project.org")'
 RUN R -e 'pacman::p_load(data.table, magrittr, glue)'

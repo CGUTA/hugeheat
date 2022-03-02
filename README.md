@@ -1,5 +1,5 @@
 # HUGEHEAT
-### A pipeline to make a visualization heatmap of large matrices with float values stored as csv
+### A pipeline to make a visualization heatmap of large matrices with float values
 forked from: https://github.com/CGUTA/hugeheat
 
 ---
@@ -23,7 +23,7 @@ The heatmap is plotted using `--background_color_u8` as the color for cells with
 
 ```
 REQUIRED:
-	--input_file \ #[path or glob] csv of numeric matrix
+	--input_file \ #[path or glob] csv/tsv of numeric matrix
 
 OPTIONAL:
 	--outdir \ #[path] where you want the heatmap to be printed (default .)
@@ -58,13 +58,13 @@ run with docker:
 ```
 docker build -t hugeheat https://raw.githubusercontent.com/loipf/hugeheat/master/docker/Dockerfile
 
-nextflow run loipf/hugeheat --input_file my_big_matrix_with_header.csv --outdir . --size 2,1 -with-docker hugeheat
+nextflow run loipf/hugeheat --input_file my_big_matrix_with_header.tsv --outdir . --size 2,1 -with-docker hugeheat
 ```
 
 more detailed:
 ```
 nextflow run loipf/hugeheat \
-	--input_file my_big_matrix_with_header.csv \
+	--input_file my_big_matrix_with_header.tsv \
 	--outdir . \
 	--size 2,1 \ # bin the rows in sets of two leave cols alone 
 	--pixel 1,5 \ # plot every cell into a rectangle 5 pixels wide and one pixel of height
@@ -78,7 +78,7 @@ nextflow run loipf/hugeheat \
 ---
 ### EXAMPLE FILES
 
-my_big_matrix_with_header.csv:
+my_big_matrix_with_header.tsv:
 ```
 ""	gene_1	gene_2	gene_3
 sample_1	0.27	1.63	0.84
