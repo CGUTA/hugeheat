@@ -1,8 +1,10 @@
 # HUGEHEAT
 ### A pipeline to make a visualization heatmap of large matrices with float values stored as csv
+forked from: https://github.com/CGUTA/hugeheat
 
+---
 
-Procedure:
+### PROCEDURE
 
 the pipeline reduces the size of the matrix by tiling it with bins of `--size width,height` (box sampling) cells covered by each bin get summarized into an average cell treating negative and positive values separately
 
@@ -56,12 +58,12 @@ run with docker:
 ```
 docker build -t hugeheat https://raw.githubusercontent.com/loipf/hugeheat/master/docker/Dockerfile
 
-nextflow run CGUTA/hugeheat --input_file my_big_matrix_with_header.csv --outdir . --size 2,1 -with-docker hugeheat
+nextflow run loipf/hugeheat --input_file my_big_matrix_with_header.csv --outdir . --size 2,1 -with-docker hugeheat
 ```
 
 more detailed:
 ```
-nextflow run CGUTA/hugeheat \
+nextflow run loipf/hugeheat \
 	--input_file my_big_matrix_with_header.csv \
 	--outdir . \
 	--size 2,1 \ # bin the rows in sets of two leave cols alone 
@@ -74,7 +76,7 @@ nextflow run CGUTA/hugeheat \
 
 
 ---
-### EXAMPLE FILES:
+### EXAMPLE FILES
 
 my_big_matrix_with_header.csv:
 ```
