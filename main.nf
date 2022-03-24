@@ -199,6 +199,10 @@ process normalization_colorization {
 	 if(!is.na(proportion)){
 	   
 	   if("$params.bicolor" == "NOT_PROVIDED"){ 
+	   		a = 1 ### KEEP - avoids following rare bug - no idea why
+			### Error in rgb_mix(., background_color, intensity) : 
+			### 'rho' must be an environment not pairlist: detected in C-level eval
+
 			color <- colormix(fire[[color]], blue[[color_negative]], proportion) %>% rgb_mix(background_color, intensity) %>% into_string
 	   } 
 	   else {
