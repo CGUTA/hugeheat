@@ -29,11 +29,12 @@ OPTIONAL:
 	--outdir \ #[path] where you want the heatmap to be printed (default .)
 	--size \ #[Int,Int] # height,width of the binning tile (default 1,1 no binning)
 	--pixel \ #[Int,Int] # height,width in pixels that cell will be rendered into (default 1,1 no distortion)
-	--background_color_u8 \ #[0-255] from black to white (default 155)
 	--threshold \ #[0-1] truncating threshold (default 0.99)
 	--intensity \ #[true/false] smaller values get less saturated colors; set false to cancel this adjustment (default true)
 
 COLORS:
+	--background_color \ #[str] hex code from background (default "#000000")
+	--gap_color \ #[str] hex code for gaps (default "#FFFFFF")
 	--bicolor \ #[str] where str is one or two comma separated hex colors (e.g. #FFFFFF #000000,#CAFFEE) these colors are then used instead of default for positive and negative numbers.
 
 GAPS:
@@ -66,8 +67,8 @@ more detailed:
 nextflow run loipf/hugeheat \
 	--input_file my_big_matrix_with_header.tsv \
 	--outdir . \
-	--size 2,1 \ # bin the rows in sets of two leave cols alone 
-	--pixel 1,5 \ # plot every cell into a rectangle 5 pixels wide and one pixel of height
+	--size 2,1 \ # bin rows in sets of two, while leave cols like they are 
+	--pixel 1,5 \ # plot every cell into a rectangle of 1 pixel of height and 5 pixels wide 
 	--threshold 1 \ # values are scaled to 0-255 but no truncation ocurrs (truncated to max value)
 	--grid gap_file.csv \ # with positions where the grid will be drawn
 	--column_gap_size 2 \ # row gaps are drawn with the default gap size column gaps with 2 pixel
