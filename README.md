@@ -27,8 +27,8 @@ REQUIRED:
 
 OPTIONAL:
 	--outdir \ #[path] where you want the heatmap to be printed (default .)
-	--size \ #[Int,Int] # width and height of the binning tile (default 1,1 no binning)
-	--pixel \ #[Int, Int] # width and height in pixels that cell will be rendered into (default 1,1 no distortion)
+	--size \ #[Int,Int] # height,width of the binning tile (default 1,1 no binning)
+	--pixel \ #[Int,Int] # height,width in pixels that cell will be rendered into (default 1,1 no distortion)
 	--background_color_u8 \ #[0-255] from black to white (default 155)
 	--threshold \ #[0-1] truncating threshold (default 0.99)
 	--intensity \ #[true/false] smaller values get less saturated colors; set false to cancel this adjustment (default true)

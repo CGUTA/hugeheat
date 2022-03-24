@@ -266,7 +266,7 @@ process normalization_colorization {
 
 	### Adding gaps in heatmap #####
 
-	calcualte_gap_mapping <- function(gap_dir, compression_size){ 
+	calculate_gap_mapping <- function(gap_dir, compression_size){ 
 		# Depending on kernel size gaps must be adjusted
 
 		gaps <- fread(gap_dir)
@@ -274,7 +274,6 @@ process normalization_colorization {
 	}
 
 	carve_gap <- function(what, gap_size, gap_locations){
-
 
 		i_operation <- "{what} >= i" %>% glue %>% parse(text = .)
 		j_operation <- "{what} := {what} + {gap_size}" %>% glue %>% parse(text = .)
@@ -291,19 +290,19 @@ process normalization_colorization {
 	vertical_gap_size <- ifelse("$params.column_gap_size" == "NOT_PROVIDED", gap_size, $params.column_gap_size)
 	horizontal_gap_size <- ifelse("$params.row_gap_size" == "NOT_PROVIDED", gap_size, $params.row_gap_size)
 
-	horizontal_compression <- strsplit("${params.size}", split=",")[[1]][1] %>% as.numeric()
-	vertical_compression <- strsplit("${params.size}", split=",")[[1]][2] %>% as.numeric()
+	vertical_compression <- strsplit("${params.size}", split=",")[[1]][1] %>% as.numeric()
+	horizontal_compression <- strsplit("${params.size}", split=",")[[1]][2] %>% as.numeric()
 
 
 	if("$params.column_gaps" != "NO_FILE_COLUMNS") {
-		carve_gap("col", vertical_gap_size, calcualte_gap_mapping("$column_gaps", horizontal_compression))
+		carve_gap("col", vertical_gap_size, calculate_gap_mapping("$column_gaps", horizontal_compression))
 	}
 	if("$params.row_gaps" != "NO_FILE_ROWS") {
-		carve_gap("id", horizontal_gap_size, calcualte_gap_mapping("$row_gaps", vertical_compression))
+		carve_gap("id", horizontal_gap_size, calculate_gap_mapping("$row_gaps", vertical_compression))
 	}
 	if("$params.grid" != "NO_FILE_GRID") {
-		carve_gap("id", horizontal_gap_size, calcualte_gap_mapping("$grid", vertical_compression))
-		carve_gap("col", vertical_gap_size, calcualte_gap_mapping("$grid", horizontal_compression))
+		carve_gap("id", horizontal_gap_size, calculate_gap_mapping("$grid", vertical_compression))
+		carve_gap("col", vertical_gap_size, calculate_gap_mapping("$grid", horizontal_compression))
 	}
 
 
