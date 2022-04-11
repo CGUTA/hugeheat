@@ -9,7 +9,7 @@ forked from: https://github.com/CGUTA/hugeheat
 the pipeline reduces the size of the matrix by tiling it with bins of `--size width,height` (box sampling) cells covered by each bin get summarized into an average cell treating negative and positive values separately
 
 
-the positive and negative values in the reduced matrix cells are separately scaled to fit a 0-255 range for displaying color intensities. The `--threshold` percentile value becomes 255 and higher values are truncated to 255. This facilitates contrast to be appreciated in the heatmap.
+the positive and negative values in the reduced matrix cells are separately scaled to fit a 0-255 range for displaying color intensities. The `--truncate_threshold` percentile value becomes 255 and higher values are truncated to 255. This facilitates contrast to be appreciated in the heatmap.
 
 A shade of blue or red is assigned to each cell coresponding to the magnitude of the negative or positive values and a final color is created for the heatmap cell by linear interpolation of these two colors
 Finally, the resulting colors are tinted with black inversely proportional to the absolute sum of the encoded negative and positive values
@@ -69,7 +69,7 @@ nextflow run loipf/hugeheat \
 	--outdir . \
 	--size 2,1 \ # bin rows in sets of two, while leave cols like they are 
 	--pixel 1,5 \ # plot every cell into a rectangle of 1 pixel of height and 5 pixels wide 
-	--threshold 1 \ # values are scaled to 0-255 but no truncation ocurrs (truncated to max value)
+	--truncate_threshold 1 \ # values are scaled to 0-255 but no truncation ocurrs (truncated to max value)
 	--grid gap_file.csv \ # with positions where the grid will be drawn
 	--column_gap_size 2 \ # row gaps are drawn with the default gap size column gaps with 2 pixel
 ```
