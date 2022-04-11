@@ -29,7 +29,7 @@ OPTIONAL:
 	--outdir \ #[path] where you want the heatmap to be printed (default .)
 	--size \ #[Int,Int] # height,width of the binning tile (default 1,1 no binning)
 	--pixel \ #[Int,Int] # height,width in pixels that cell will be rendered into (default 1,1 no distortion)
-	--threshold \ #[0-1] truncating threshold (default 0.99)
+	--truncate_threshold \ #[0-1] truncating threshold (default 1)
 	--intensity \ #[true/false] smaller values get less saturated colors; set false to cancel this adjustment (default true)
 
 COLORS:

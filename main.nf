@@ -24,13 +24,10 @@ process compile {
 
 }
 
-//log1 = Channel.create().subscribe { println "Log 1: $it" }
 
 raw_file = Channel.fromPath("$params.input_file")
 	.map { file -> tuple(file.baseName, file) }
 
-params.size = '1,1'
-params.pixel = '1,1'
 process box_sampling_into_long {
 
 	//publishDir "$params.outdir/", mode: 'copy', saveAs: { filename -> "${datasetID}_reduced_$filename" }
@@ -49,20 +46,6 @@ process box_sampling_into_long {
 
 }
 
-params.default_gap_size = 'NOT_PROVIDED'
-params.column_gap_size = 'NOT_PROVIDED'
-params.row_gap_size = 'NOT_PROVIDED'
-params.intensity = 'NOT_PROVIDED'
-params.column_gaps = 'NO_FILE_COLUMNS'
-params.row_gaps = 'NO_FILE_ROWS'
-params.grid = 'NO_FILE_GRID'
-
-params.truncate_positive_at = 'NOT_PROVIDED'
-params.truncate_negative_at = 'NOT_PROVIDED'
-params.truncate_extremes_at = 'NOT_PROVIDED'
-params.automatic_threshold = 'NOT_PROVIDED'
-
-params.bicolor = 'NOT_PROVIDED'
 
 
 process normalization_colorization {
@@ -227,10 +210,10 @@ process normalization_colorization {
 	truncate_positive_at <- ifelse("$params.truncate_positive_at" == "NOT_PROVIDED", default_truncation, $params.truncate_positive_at)
 	truncate_negative_at <- ifelse("$params.truncate_negative_at" == "NOT_PROVIDED", default_truncation, $params.truncate_negative_at)
 
-	threshold <- ifelse("$params.automatic_threshold" == "NOT_PROVIDED", 1, $params.automatic_threshold) # hardcoded default
+	threshold <- ifelse("$params.truncate_threshold" == "NOT_PROVIDED", 1, $params.truncate_threshold) # hardcoded default
 
-	max <- ifelse("$params.automatic_threshold" == "NOT_PROVIDED", truncate_positive_at, quantile(melted[,value], probs = c(threshold)))
-	min <- ifelse("$params.automatic_threshold" == "NOT_PROVIDED", -truncate_negative_at, quantile(melted[,value_negative], probs = c(1 - threshold)))
+	max <- ifelse("$params.truncate_threshold" == "NOT_PROVIDED", truncate_positive_at, quantile(melted[,value], probs = c(threshold)))
+	min <- ifelse("$params.truncate_threshold" == "NOT_PROVIDED", -truncate_negative_at, quantile(melted[,value_negative], probs = c(1 - threshold)))
 
 	melted[value > max, value := max]
 	melted[value_negative < min, value_negative := min]
@@ -373,7 +356,7 @@ process compile_display {
 
 process render_to_png {
 
-	publishDir "$params.outdir/", mode: 'copy', saveAs: { filename -> "${datasetID}_t${params.threshold}_b${params.size}_p${params.pixel}_$filename" }
+	publishDir "$params.outdir/", mode: 'copy', saveAs: { filename -> "${datasetID}_t${params.truncate_threshold}_b${params.size}_p${params.pixel}_$filename" }
 
     
     input:
