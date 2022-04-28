@@ -300,7 +300,7 @@ process normalization_colorization {
 	gaps_col_color_dt = expand.grid('id' = unique(merged[,id]), "col" = gaps_col, hex_color=gap_color)
 
 	gaps_row = setdiff(1:max(merged[,id]), unique(merged[,id]))
-	gaps_row_color_dt = expand.grid('id' = gaps_row, 'col' = unique(merged[,col]), "col" = gaps_row, hex_color=gap_color)
+	gaps_row_color_dt = expand.grid('id' = gaps_row, 'col' = c(unique(merged[,col]),unique(gaps_col_color_dt[,"col"])), hex_color=gap_color)
 
 	merged = rbindlist(list(merged, gaps_col_color_dt,gaps_row_color_dt), fill=T)
 
