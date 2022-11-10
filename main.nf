@@ -1,8 +1,8 @@
-// Make heatmap for arko
+
 params.outdir="."
 process compile {
-	storeDir "$params.outdir/bin/" 
-
+	//storeDir "$params.outdir/bin/" 
+	//cache false
 	//publishDir "$params.outdir/", mode: 'copy', saveAs: { filename -> "${datasetID}_reduced_$filename" }
     
     input:
@@ -10,24 +10,24 @@ process compile {
 
     output:
     file 'csvmipmap/target/release/csvmipmap' into binary
-
+    //file 'csvmipmap' into binary
 
     """
+    echo hallo
     git clone $repo
     cd csvmipmap/
-    cargo build --release
-    #cp target/release/csvmipmap ../csvmipmap_b
+    /root/.cargo/bin/cargo build --release
+    #cd ..
+    #mv csvmipmap csvmipmap_package
+    #cp csvmipmap_package/target/release/csvmipmap ./csvmipmap
     """
 
 }
 
-//log1 = Channel.create().subscribe { println "Log 1: $it" }
 
 raw_file = Channel.fromPath("$params.input_file")
 	.map { file -> tuple(file.baseName, file) }
 
-params.size = '1,1'
-params.pixel = '1,1'
 process box_sampling_into_long {
 
 	//publishDir "$params.outdir/", mode: 'copy', saveAs: { filename -> "${datasetID}_reduced_$filename" }
@@ -46,20 +46,6 @@ process box_sampling_into_long {
 
 }
 
-params.default_gap_size = 'NOT_PROVIDED'
-params.column_gap_size = 'NOT_PROVIDED'
-params.row_gap_size = 'NOT_PROVIDED'
-params.intensity = 'NOT_PROVIDED'
-params.column_gaps = 'NO_FILE_COLUMNS'
-params.row_gaps = 'NO_FILE_ROWS'
-params.grid = 'NO_FILE_GRID'
-
-params.truncate_positive_at = 'NOT_PROVIDED'
-params.truncate_negative_at = 'NOT_PROVIDED'
-params.truncate_extremes_at = 'NOT_PROVIDED'
-params.automatic_threshold = 'NOT_PROVIDED'
-
-params.bicolor = 'NOT_PROVIDED'
 
 
 process normalization_colorization {
@@ -188,7 +174,7 @@ process normalization_colorization {
 	}
 
 	hex_to_rgb <- function(hex){
-    	col2rgb(hex)[,1]
+    		col2rgb(hex)[,1]
 	}
 
 	background_color <- hex_to_rgb("$params.background_color")
@@ -196,6 +182,10 @@ process normalization_colorization {
 	 if(!is.na(proportion)){
 	   
 	   if("$params.bicolor" == "NOT_PROVIDED"){ 
+	   		a = 1 ### KEEP - avoids following rare bug - no idea why
+			### Error in rgb_mix(., background_color, intensity) : 
+			### 'rho' must be an environment not pairlist: detected in C-level eval
+
 			color <- colormix(fire[[color]], blue[[color_negative]], proportion) %>% rgb_mix(background_color, intensity) %>% into_string
 	   } 
 	   else {
@@ -220,10 +210,10 @@ process normalization_colorization {
 	truncate_positive_at <- ifelse("$params.truncate_positive_at" == "NOT_PROVIDED", default_truncation, $params.truncate_positive_at)
 	truncate_negative_at <- ifelse("$params.truncate_negative_at" == "NOT_PROVIDED", default_truncation, $params.truncate_negative_at)
 
-	threshold <- ifelse("$params.automatic_threshold" == "NOT_PROVIDED", 1, $params.automatic_threshold) # hardcoded default
+	threshold <- ifelse("$params.truncate_threshold" == "NOT_PROVIDED", 1, $params.truncate_threshold) # hardcoded default
 
-	max <- ifelse("$params.automatic_threshold" == "NOT_PROVIDED", truncate_positive_at, quantile(melted[,value], probs = c(threshold)))
-	min <- ifelse("$params.automatic_threshold" == "NOT_PROVIDED", -truncate_negative_at, quantile(melted[,value_negative], probs = c(1 - threshold)))
+	max <- ifelse("$params.truncate_threshold" == "NOT_PROVIDED", truncate_positive_at, quantile(melted[,value], probs = c(threshold)))
+	min <- ifelse("$params.truncate_threshold" == "NOT_PROVIDED", -truncate_negative_at, quantile(melted[,value_negative], probs = c(1 - threshold)))
 
 	melted[value > max, value := max]
 	melted[value_negative < min, value_negative := min]
@@ -263,7 +253,7 @@ process normalization_colorization {
 
 	### Adding gaps in heatmap #####
 
-	calcualte_gap_mapping <- function(gap_dir, compression_size){ 
+	calculate_gap_mapping <- function(gap_dir, compression_size){ 
 		# Depending on kernel size gaps must be adjusted
 
 		gaps <- fread(gap_dir)
@@ -271,7 +261,6 @@ process normalization_colorization {
 	}
 
 	carve_gap <- function(what, gap_size, gap_locations){
-
 
 		i_operation <- "{what} >= i" %>% glue %>% parse(text = .)
 		j_operation <- "{what} := {what} + {gap_size}" %>% glue %>% parse(text = .)
@@ -288,24 +277,34 @@ process normalization_colorization {
 	vertical_gap_size <- ifelse("$params.column_gap_size" == "NOT_PROVIDED", gap_size, $params.column_gap_size)
 	horizontal_gap_size <- ifelse("$params.row_gap_size" == "NOT_PROVIDED", gap_size, $params.row_gap_size)
 
-	horizontal_compression <- strsplit("${params.size}", split=",")[[1]][1] %>% as.numeric()
-	vertical_compression <- strsplit("${params.size}", split=",")[[1]][2] %>% as.numeric()
+	vertical_compression <- strsplit("${params.size}", split=",")[[1]][1] %>% as.numeric()
+	horizontal_compression <- strsplit("${params.size}", split=",")[[1]][2] %>% as.numeric()
 
 
 	if("$params.column_gaps" != "NO_FILE_COLUMNS") {
-		carve_gap("col", vertical_gap_size, calcualte_gap_mapping("$column_gaps", horizontal_compression))
+		carve_gap("col", vertical_gap_size, calculate_gap_mapping("$column_gaps", horizontal_compression))
 	}
 	if("$params.row_gaps" != "NO_FILE_ROWS") {
-		carve_gap("id", horizontal_gap_size, calcualte_gap_mapping("$row_gaps", vertical_compression))
+		carve_gap("id", horizontal_gap_size, calculate_gap_mapping("$row_gaps", vertical_compression))
 	}
 	if("$params.grid" != "NO_FILE_GRID") {
-		carve_gap("id", horizontal_gap_size, calcualte_gap_mapping("$grid", vertical_compression))
-		carve_gap("col", vertical_gap_size, calcualte_gap_mapping("$grid", horizontal_compression))
+		carve_gap("id", horizontal_gap_size, calculate_gap_mapping("$grid", vertical_compression))
+		carve_gap("col", vertical_gap_size, calculate_gap_mapping("$grid", horizontal_compression))
 	}
 
 
+	### add color for gaps
+	gap_color = col2rgb("$params.gap_color")[,1] %>% into_string()
 
-	###
+	gaps_col = setdiff(1:max(merged[,col]), unique(merged[,col]))
+	gaps_col_color_dt = expand.grid('id' = unique(merged[,id]), "col" = gaps_col, hex_color=gap_color)
+
+	gaps_row = setdiff(1:max(merged[,id]), unique(merged[,id]))
+	gaps_row_color_dt = expand.grid('id' = gaps_row, 'col' = c(unique(merged[,col]),unique(gaps_col_color_dt[,"col"])), hex_color=gap_color)
+
+	merged = rbindlist(list(merged, gaps_col_color_dt,gaps_row_color_dt), fill=T)
+
+
 
 	### pixel to parallelogram in render
 
@@ -330,8 +329,7 @@ process normalization_colorization {
 }
 
 process compile_display {
-	storeDir "$params.outdir/bin/" 
-
+	//storeDir "$params.outdir/bin/" 
 	//publishDir "$params.outdir/", mode: 'copy', saveAs: { filename -> "${datasetID}_reduced_$filename" }
     
     input:
@@ -341,11 +339,16 @@ process compile_display {
     file 'display_heatmap/target/release/display_heatmap' into binary_display
 
 
-    """
-    git clone $repo
+    shell:
+    '''
+    git clone !{repo}
     cd display_heatmap/
-    cargo build --release
-    """
+    
+    ### bugfix: https://users.rust-lang.org/t/expected-u32-found-usize-in-lexical-core/62820/2
+    sed -i 's/lexical = "4.0.0"/lexical = "5.0.0"/g' Cargo.toml
+    
+    /root/.cargo/bin/cargo build --release
+    '''
 
 }
 
@@ -353,7 +356,7 @@ process compile_display {
 
 process render_to_png {
 
-	publishDir "$params.outdir/", mode: 'copy', saveAs: { filename -> "${datasetID}_t${params.threshold}_b${params.size}_p${params.pixel}_$filename" }
+	publishDir "$params.outdir/", mode: 'copy', saveAs: { filename -> "${datasetID}_t${params.truncate_threshold}_b${params.size}_p${params.pixel}_$filename" }
 
     
     input:
